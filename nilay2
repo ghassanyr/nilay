@@ -1,0 +1,433 @@
+CONTEXT
+C++ project (Visual Studio 2022) for a university data structures course. One solution, one main(), one folder per topic. This week is Week 5 (recursion). The written answers are already done. The code in this repo is out of date and must be brought up to date with the files below. Paths are relative to the folder that contains the .vcxproj and main.cpp (it may be a nested folder, find it first).
+
+RULES
+- Do not push. Commit locally at the end with the message: Week 5 - recursion
+- Write the files exactly as given. No renaming, no extra comments, no extra functions.
+- Do not touch anything not listed here (other weeks' files, .gitignore, .github folders, Stack/, Queue/).
+- Keep the line endings of the existing files.
+- Keep buggyCountdown(3); commented out in Week05.cpp.
+
+STEP 1. Look first. Report what exists: Labs/Labs.h, Labs/Week05.cpp, Recursion/ folder, LinkedList/LinkedList.h and .cpp, main.cpp, the .vcxproj and .filters. If LinkedList is missing insertAtFront(int), display() const, or a destructor, stop and report instead of continuing.
+
+STEP 2. Create or replace these files.
+
+=== FILE: Recursion/Recursion.h ===
+#pragma once
+#include <string>
+
+// Week 5: recursive functions. Free functions, no class.
+// Every function has a base case (stop) and a recursive case (call).
+
+// ---- Q1 / Q2: tracing the call stack ----
+void countdown(int n);                      // prints Entering / Exiting
+void buggyCountdown(int n);                 // Q2: NO base case - crashes!
+void fixedCountdown(int n);                 // Q2: 3 2 1
+
+// ---- Q3 / Q4: tail vs non-tail ----
+void tailPrint(int n);                      // 3 2 1  (work BEFORE call)
+void nonTailPrint(int n);                   // 1 2 3  (work AFTER call)
+int  tailSum(int n, int accumulator);       // tailSum(5, 0) = 15
+int  nonTailSum(int n);                     // nonTailSum(5) = 15
+
+// ---- Q5: factorial ----
+long long factorial(int n);                 // throws std::invalid_argument
+long long factorialTail(int n, long long acc);   // factorialTail(4, 1) = 24
+
+// ---- Q6: power ----
+double power(double base, int exponent, int& calls);      // linear
+double fastPower(double base, int exponent, int& calls);  // squaring
+
+// ---- Q7: indirect (mutual) recursion ----
+bool isEven(int n);
+bool isOdd(int n);
+
+// ---- Q9: indirect recursion - expression parser ----
+void parseExpression(const std::string& expr, int& index);
+void parseOperand(const std::string& expr, int& index);
+
+// ---- Q10: tree recursion ----
+long long fib(int n, long long& calls);     // naive, counts its calls
+long long fibIter(int n);                   // loop version
+=== END ===
+
+=== FILE: Recursion/Recursion.cpp ===
+#include "Recursion.h"
+#include <iostream>
+#include <stdexcept>                // std::invalid_argument
+using namespace std;
+
+// ============================ Q1 / Q2 ============================
+void countdown(int n)
+{
+    cout << "Entering countdown(" << n << "), stack level " << n << endl;
+    if (n <= 0) {
+        cout << "Base case reached!" << endl;
+        return;                     // base case: no further call
+    }
+    cout << n << " ";               // work BEFORE the recursive call
+    countdown(n - 1);               // recursive call: one level deeper
+    cout << "Exiting countdown(" << n << ")" << endl;   // work AFTER
+}
+
+void buggyCountdown(int n)
+{
+    cout << n << " ";
+    buggyCountdown(n - 1);          // no base case: never stops
+}
+
+void fixedCountdown(int n)
+{
+    if (n <= 0)
+        return;
+    cout << n << " ";
+    fixedCountdown(n - 1);
+}
+
+// ============================ Q3 / Q4 ============================
+void tailPrint(int n)
+{
+    if (n <= 0)
+        return;
+    cout << n << " ";
+    tailPrint(n - 1);
+}
+
+void nonTailPrint(int n)
+{
+    if (n <= 0)
+        return;
+    nonTailPrint(n - 1);
+    cout << n << " ";
+}
+
+int tailSum(int n, int accumulator)
+{
+    if (n <= 0)
+        return accumulator;
+    return tailSum(n - 1, accumulator + n);
+}
+
+int nonTailSum(int n)
+{
+    if (n <= 0)
+        return 0;
+    return n + nonTailSum(n - 1);
+}
+
+// ============================ Q5 ============================
+long long factorial(int n)
+{
+    if (n < 0)
+        throw invalid_argument("Factorial of negative number is undefined");
+    if (n == 0 || n == 1)
+        return 1;
+    return n * factorial(n - 1);
+}
+
+long long factorialTail(int n, long long acc)
+{
+    if (n <= 1)
+        return acc;
+    return factorialTail(n - 1, acc * n);
+}
+
+// ============================ Q6 ============================
+double power(double base, int exponent, int& calls)
+{
+    calls++;                        // keep this line: it counts the calls
+    if (exponent == 0)
+        return 1;
+    if (exponent == 1)
+        return base;
+    if (exponent < 0)
+        return 1 / power(base, -exponent, calls);
+    return base * power(base, exponent - 1, calls);
+}
+
+double fastPower(double base, int exponent, int& calls)
+{
+    calls++;
+    if (exponent == 0)
+        return 1;
+    double half = fastPower(base, exponent / 2, calls);
+    if (exponent % 2 == 0)
+        return half * half;
+    return half * half * base;
+}
+
+// ============================ Q7 ============================
+bool isEven(int n)
+{
+    if (n < 0) n = -n;
+    if (n == 0)
+        return true;
+    return isOdd(n - 1);
+}
+
+bool isOdd(int n)
+{
+    if (n < 0) n = -n;
+    if (n == 0)
+        return false;
+    return isEven(n - 1);
+}
+
+// ============================ Q9 ============================
+void parseExpression(const string& expr, int& index)
+{
+    cout << "Entering parseExpression at index " << index << endl;
+    while (index < (int)expr.length() && expr[index] != ')') {
+        if (isdigit(expr[index])) {
+            parseOperand(expr, index);
+        }
+        else if (expr[index] == '+' || expr[index] == '*' ||
+                 expr[index] == '-') {
+            cout << "Operator: " << expr[index] << endl;
+            index++;
+        }
+        else if (expr[index] == '(') {
+            parseOperand(expr, index);          // indirect recursion
+        }
+        else {
+            index++;                            // skip spaces etc.
+        }
+    }
+    if (index < (int)expr.length() && expr[index] == ')') {
+        cout << "Closing parenthesis at index " << index << endl;
+        index++;                                // move past ')'
+    }
+    cout << "Exiting parseExpression at index " << index << endl;
+}
+
+void parseOperand(const string& expr, int& index)
+{
+    if (isdigit(expr[index])) {
+        cout << "Operand: " << expr[index] << endl;
+        index++;
+    }
+    else if (expr[index] == '(') {
+        cout << "Opening parenthesis at index " << index << endl;
+        index++;                                // skip '('
+        parseExpression(expr, index);           // indirect recursion
+    }
+}
+
+// ============================ Q10 ============================
+long long fib(int n, long long& calls)
+{
+    calls++;                        // keep this line
+    if (n <= 0)
+        return 0;
+    if (n == 1)
+        return 1;
+    return fib(n - 1, calls) + fib(n - 2, calls);
+}
+
+long long fibIter(int n)
+{
+    long long a = 0, b = 1;
+    for (int i = 0; i < n; i++) {
+        long long next = a + b;
+        a = b;
+        b = next;
+    }
+    return a;
+}
+=== END ===
+
+=== FILE: Labs/Week05.cpp ===
+#include "Labs.h"
+#include "../Recursion/Recursion.h"
+#include "../LinkedList/LinkedList.h"
+#include <iostream>
+#include <iomanip>                  // setprecision
+#include <stdexcept>                // invalid_argument
+
+using namespace std;
+
+void runWeek05()
+{
+
+    cout << "--- Week 5: Recursion and Stack Tracing ---" << endl;
+    cout << boolalpha;
+
+
+    // ---------- Q1: countdown trace ----------
+    cout << "[Q1]" << endl;
+    countdown(3);
+
+    // ---------- Q2: infinite recursion ----------
+
+    // buggyCountdown(3);           // Q2: uncomment, run, comment again
+    cout << "[Q2] fixedCountdown: ";
+    fixedCountdown(3);
+    cout << endl;
+
+    // ---------- Q3: tail vs non-tail print ----------
+    cout << "[Q3] tailPrint(3):    ";  tailPrint(3);     cout << endl;
+    cout << "[Q3] nonTailPrint(3): ";  nonTailPrint(3);  cout << endl;
+
+    // ---------- Q4: tail vs non-tail sum ----------
+    cout << "[Q4] tailSum(5, 0) = " << tailSum(5, 0)
+         << "   nonTailSum(5) = " << nonTailSum(5) << endl;
+
+    // ---------- Q5: factorial ----------
+    try {
+        cout << "[Q5] factorial(5) = " << factorial(5)
+             << "   factorial(0) = " << factorial(0) << endl;
+        cout << "[Q5] factorial(20) = " << factorial(20) << endl;
+        cout << "[Q5] factorialTail(4, 1) = " << factorialTail(4, 1)
+             << endl;
+        cout << "[Q5] calling factorial(-3) ..." << endl;
+        long long bad = factorial(-3);          // throws: next line skipped
+        cout << "[Q5] factorial(-3) = " << bad << endl;
+    }
+    catch (const invalid_argument& e) {
+        cout << "[Q5] Error: " << e.what() << endl;
+    }
+
+    // ---------- Q6: power ----------
+    int calls = 0;
+    cout << fixed << setprecision(3);
+    cout << "[Q6] power(2, 3) = " << power(2, 3, calls)
+         << "   power(2, -3) = " << power(2, -3, calls)
+         << "   power(5, 0) = " << power(5, 0, calls) << endl;
+    calls = 0;
+    cout << "[Q6] power(2, 10) = " << power(2, 10, calls)
+         << "  calls = " << calls << endl;
+    calls = 0;
+    cout << "[Q6] fastPower(2, 10) = " << fastPower(2, 10, calls)
+         << "  calls = " << calls << endl;
+    calls = 0;
+    cout << "[Q6] fastPower(2, 100) calls = ";
+    fastPower(2, 100, calls);
+    cout << calls << endl;
+    cout << defaultfloat;
+
+    // ---------- Q7: isEven / isOdd ----------
+    cout << "[Q7] isEven(4) = " << isEven(4)
+         << "   isOdd(4) = " << isOdd(4) << endl;
+    cout << "[Q7] isEven(7) = " << isEven(7)
+         << "   isOdd(-3) = " << isOdd(-3) << endl;
+
+    // ---------- Q8: linked list, recursive ----------
+    LinkedList list;
+    list.insertAtFront(4);  list.insertAtFront(3);
+    list.insertAtFront(2);  list.insertAtFront(1);          // 1 2 3 4
+    cout << "[Q8] ";  list.display();
+    cout << "[Q8] backward: ";  list.displayBackward();
+    list.reverse();
+    cout << "[Q8] reversed: ";  list.display();
+
+    // ---------- Q9: expression parser ----------
+    string expr = "2+(3*(4+5))";
+    int index = 0;
+    cout << "[Q9] parsing " << expr << endl;
+    parseExpression(expr, index);
+
+    // ---------- Q10: tree recursion ----------
+    for (int n : { 5, 10, 20, 25 }) {
+        long long fibCalls = 0;
+        long long value = fib(n, fibCalls);
+        cout << "[Q10] fib(" << n << ") = " << value
+             << "  calls = " << fibCalls
+             << "  fibIter = " << fibIter(n) << endl;
+    }
+}
+=== END ===
+
+STEP 3. Edit these existing files. Add only what is missing, keep everything else.
+
+a) Labs/Labs.h: add the line   void runWeek05();   if it is not there.
+
+b) main.cpp: add the menu line   cout << " 5. Week 5 - Recursion" << endl;   and the switch line   case 5:  runWeek05(); break;   next to the existing ones. Do not remove other cases.
+
+c) LinkedList/LinkedList.h: add this inside the class, before the closing };
+
+    // ---- Week 5: recursion ----
+    void displayBackward() const;   // 4 3 2 1 - via printBackward
+    void reverse();                 // in place - via reverseFrom
+
+private:
+    static void  printBackward(const Node* node);   // recursive helper
+    static Node* reverseFrom(Node* node);           // returns new head
+
+d) LinkedList/LinkedList.cpp: add at the end (replace the Week 5 stubs if they already exist):
+
+// =============================== Week 5 ===============================
+void LinkedList::displayBackward() const
+{
+    printBackward(head);
+    cout << endl;
+}
+
+void LinkedList::printBackward(const Node* node)
+{
+    if (node == nullptr)
+        return;
+    printBackward(node->next);
+    cout << node->data << " ";
+}
+
+void LinkedList::reverse()
+{
+    head = reverseFrom(head);
+}
+
+Node* LinkedList::reverseFrom(Node* node)
+{
+    if (node == nullptr || node->next == nullptr)
+        return node;
+    Node* newHead = reverseFrom(node->next);
+    node->next->next = node;
+    node->next = nullptr;
+    return newHead;
+}
+
+STEP 4. Project file
+- In the .vcxproj add ClCompile entries for Labs\Week05.cpp and Recursion\Recursion.cpp, and a ClInclude entry for Recursion\Recursion.h (backslashes, paths relative to the .vcxproj, same style as the existing entries). Do not duplicate entries that already exist.
+- Do the same in the .filters file if the structure is simple, otherwise skip it and tell me.
+- Check that the XML is still valid and that every listed path exists on disk.
+
+STEP 5. Verify
+a) Compile outside Visual Studio into /tmp only, with every .cpp listed in the .vcxproj except any that do not compile on their own for reasons unrelated to this task (report those):
+   g++ -std=c++17 -Wall -Wextra -fsanitize=address,undefined -g <all project .cpp files> -o /tmp/lab
+   The only warning allowed is "infinite recursion" for buggyCountdown (it is intentional). If there are errors, report them, do not improvise.
+b) Run it, enter 5, then 0. These lines must be present exactly:
+
+[Q2] fixedCountdown: 3 2 1
+[Q3] tailPrint(3):    3 2 1
+[Q3] nonTailPrint(3): 1 2 3
+[Q4] tailSum(5, 0) = 15   nonTailSum(5) = 15
+[Q5] factorial(5) = 120   factorial(0) = 1
+[Q5] factorial(20) = 2432902008176640000
+[Q5] factorialTail(4, 1) = 24
+[Q5] calling factorial(-3) ...
+[Q5] Error: Factorial of negative number is undefined
+[Q6] power(2, 3) = 8.000   power(2, -3) = 0.125   power(5, 0) = 1.000
+[Q6] power(2, 10) = 1024.000  calls = 10
+[Q6] fastPower(2, 10) = 1024.000  calls = 5
+[Q6] fastPower(2, 100) calls = 8
+[Q7] isEven(4) = true   isOdd(4) = false
+[Q7] isEven(7) = false   isOdd(-3) = true
+[Q8] 1 -> 2 -> 3 -> 4 -> NULL
+[Q8] backward: 4 3 2 1
+[Q8] reversed: 4 -> 3 -> 2 -> 1 -> NULL
+[Q10] fib(5) = 5  calls = 15  fibIter = 5
+[Q10] fib(10) = 55  calls = 177  fibIter = 55
+[Q10] fib(20) = 6765  calls = 21891  fibIter = 6765
+[Q10] fib(25) = 75025  calls = 242785  fibIter = 75025
+
+   Also the [Q1] trace (Entering countdown(3) down to Exiting countdown(3)) and the [Q9] parser trace for 2+(3*(4+5)) must print, ending with "Exiting parseExpression at index 11". The sanitizer must report no errors.
+c) git status: no x64, Debug, .vs, obj or bin files staged. Stage only the files you changed or created.
+d) Commit locally with the message: Week 5 - recursion. Do not push.
+
+REPORT BACK
+1. What existed before and what you had to create or change.
+2. The g++ result and any difference from the expected lines.
+3. The vcxproj and filters lines you added.
+4. git status and git log -1 --stat.
+5. Anything you did that was not in this list.
+
+NOTE: this machine has no git and no compiler. Skip step 5a, 5b, 5c and 5d completely: no compile commands, no git commands, no installing. Instead, in step 5 only check: all files exist, the .vcxproj parses as XML, every path listed in the .vcxproj exists on disk, and there is exactly one main( definition among the listed .cpp files. Do not commit. Report as asked.
