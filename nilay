@@ -1,0 +1,584 @@
+TASK: restore the Week 3 code of a Visual Studio C++ project (CENG203_Lab) from the file contents below. This machine has NO git and NO compiler. Do not run any git command, do not run any compile command, do not try to install anything.
+
+STEP 1. Find the project
+Find the folder that contains CENG203_Lab.vcxproj. Call it the PROJECT FOLDER. All paths below are relative to it. If there is no .sln or no .vcxproj anywhere, STOP and tell me, do not create them.
+List which of the files below already exist (so I can see what was missing). Then continue.
+
+STEP 2. Write these files (overwrite if they exist)
+Create the folders Labs and LinkedList if needed. Do NOT create or touch: Stack, Queue, Labs/Week02.cpp, CENG203_Lab.cpp. Do NOT delete anything.
+Write every file EXACTLY as given. No changes, no extra comments, no "improvements".
+Encoding: UTF-8 without BOM. Line endings: CRLF. Every file ends with a final newline.
+
+=== FILE: main.cpp ===
+#include "Labs/Labs.h"
+#include <iostream>
+using namespace std;
+
+int main()
+{
+    int choice = -1;
+    while (choice != 0)
+    {
+        cout << endl << "--- CENG203 Lab ---" << endl;
+        cout << " 3. Week 3 - Linked lists" << endl;
+        cout << " 0. Exit" << endl;
+        cout << "Choice: ";
+        cin >> choice;
+
+        switch (choice)
+        {
+        case 3:  runWeek03(); break;
+        case 0:  break;
+        default: cout << "Invalid choice" << endl;
+        }
+    }
+    return 0;
+}
+=== END ===
+
+=== FILE: Labs/Labs.h ===
+void runWeek03();
+=== END ===
+
+=== FILE: Labs/Week03.cpp ===
+#include "Labs.h"
+#include "../LinkedList/Node.h"
+#include "../LinkedList/LinkedList.h"
+#include "../LinkedList/CircularList.h"
+#include "../LinkedList/DoublyLinkedList.h"
+#include <iostream>
+using namespace std;
+
+void runWeek03()
+{
+    cout << "--- Week 3: Linked Lists ---" << endl;
+
+    // ---------- Q1: three nodes by hand, no class ----------
+    Node* n1 = nullptr;
+    cout << "[Q1] n1 = " << n1 << "  sizeof(n1) = " << sizeof(n1)
+         << "  sizeof(Node) = " << sizeof(Node) << endl;
+    n1 = new Node;
+    cout << "[Q1] after new: data = " << n1->data
+         << "  next = " << n1->next << endl;
+    Node* n2 = new Node;
+    Node* n3 = new Node;
+    n1->data = 5;   n2->data = 7;   n3->data = 11;
+    n1->next = n2;  n2->next = n3;  n3->next = nullptr;
+    for (Node* cur = n1; cur != nullptr; cur = cur->next)
+        cout << "[Q1] " << cur << "  data = " << cur->data
+             << "  next = " << cur->next << endl;
+    delete n3;  delete n2;  delete n1;
+
+    // ---------- Q2: insertAtEnd, length, createFromArray ----------
+    int arr[] = { 7, 2, 5, 4 };
+    LinkedList list;
+    list.createFromArray(arr, 4);
+    cout << "[Q2] ";  list.display();
+    cout << "[Q2] length = " << list.length() << endl;
+
+    // ---------- Q3: search ----------
+    cout << "[Q3] search(4) = " << list.search(4)
+         << "   search(9) = " << list.search(9) << endl;
+
+    // ---------- Q4: update ----------
+    list.insertAtEnd(2);                                   // 7 2 5 4 2
+    cout << "[Q4] update(2, 9) changed " << list.update(2, 9)
+         << " node(s): ";  list.display();
+
+    // ---------- Q5: insertAt ----------
+    list.insertAt(0, 1);
+    list.insertAt(3, 8);
+    list.insertAt(list.length(), 6);
+    cout << "[Q5] ";  list.display();
+    cout << boolalpha;                              // print true/false
+    cout << "[Q5] insertAt(99, 0) = " << list.insertAt(99, 0) << endl;
+
+    // ---------- Q6: deleteValue ----------
+    list.deleteValue(1);  list.deleteValue(8);  list.deleteValue(6);
+    cout << "[Q6] ";  list.display();
+    cout << "[Q6] deleteValue(42) = " << list.deleteValue(42) << endl;
+
+    // ---------- Q7: merge ----------
+    int arr2[] = { 30, 40 };
+    LinkedList other;
+    other.createFromArray(arr2, 2);
+    list.merge(other);
+    cout << "[Q7] merged: ";  list.display();
+    cout << "[Q7] other.isEmpty() = " << other.isEmpty() << endl;
+
+    // ---------- Q8: circular list ----------
+    CircularList ring;
+    ring.append(7);  ring.append(2);  ring.append(5);  ring.append(4);
+    cout << "[Q8] ";  ring.display();
+    cout << "[Q8] length = " << ring.length() << endl;
+
+    // ---------- Q9: doubly linked list ----------
+    DoublyLinkedList dl;
+    dl.insertAtEnd(20);  dl.insertAtEnd(30);  dl.insertAtFront(10);
+    cout << "[Q9] ";  dl.displayForward();
+    cout << "[Q9] ";  dl.displayBackward();
+    dl.deleteValue(20);  dl.deleteValue(30);
+    cout << "[Q9] ";  dl.displayForward();
+    cout << "[Q9] ";  dl.displayBackward();
+    cout << "[Q9] deleteValue(99) = " << dl.deleteValue(99) << endl;
+}
+=== END ===
+
+=== FILE: LinkedList/Node.h ===
+#pragma once
+
+struct Node {
+	int data;	// value stored in this node
+	Node* next;	// next node's address (* points to address?)
+};
+=== END ===
+(Node.h: indent with TAB characters and put a TAB before each // comment.)
+
+=== FILE: LinkedList/LinkedList.h ===
+#pragma once
+#include "Node.h"
+
+class LinkedList
+{
+private:
+    Node* head;
+
+public:
+    LinkedList();
+    ~LinkedList();
+
+    // ---- Week 2 ----
+    void insertAtFront(int value);
+    void display() const;
+    bool isEmpty() const;
+
+    // ---- Week 3 ----
+    void insertAtEnd(int value);
+    int  length() const;
+    void createFromArray(const int arr[], int n);
+    int  search(int value) const;
+    int  update(int oldValue, int newValue);
+    bool insertAt(int index, int value);
+    bool deleteValue(int value);
+    void merge(LinkedList& other);
+};
+=== END ===
+
+=== FILE: LinkedList/LinkedList.cpp ===
+#include "LinkedList.h"
+#include <iostream>
+using namespace std;
+
+LinkedList::LinkedList()
+{
+    head = nullptr;
+}
+
+LinkedList::~LinkedList()
+{
+    while (head != nullptr)
+    {
+        Node* victim = head;
+        head = head->next;
+        delete victim;
+    }
+}
+
+void LinkedList::insertAtFront(int value)
+{
+    Node* newNode = new Node;
+    newNode->data = value;
+    newNode->next = head;
+    head = newNode;
+}
+
+void LinkedList::display() const
+{
+    for (Node* cur = head; cur != nullptr; cur = cur->next)
+        cout << cur->data << " -> ";
+    cout << "NULL" << endl;
+}
+
+bool LinkedList::isEmpty() const
+{
+    return head == nullptr;
+}
+
+// =============================== Week 3 ===============================
+
+void LinkedList::insertAtEnd(int value)                     // Q2
+{
+    Node* newNode = new Node;
+    newNode->data = value;
+    newNode->next = nullptr;
+
+    if (head == nullptr)
+    {
+        head = newNode;
+        return;
+    }
+
+    Node* cur = head;
+    while (cur->next != nullptr)
+        cur = cur->next;
+    cur->next = newNode;
+}
+
+int LinkedList::length() const                              // Q2
+{
+    int count = 0;
+    for (Node* cur = head; cur != nullptr; cur = cur->next)
+        count++;
+    return count;
+}
+
+void LinkedList::createFromArray(const int arr[], int n)    // Q2
+{
+    for (int i = 0; i < n; i++)
+        insertAtEnd(arr[i]);
+}
+
+int LinkedList::search(int value) const                     // Q3
+{
+    int index = 0;
+    for (Node* cur = head; cur != nullptr; cur = cur->next)
+    {
+        if (cur->data == value)
+            return index;
+        index++;
+    }
+    return -1;
+}
+
+int LinkedList::update(int oldValue, int newValue)          // Q4
+{
+    int changed = 0;
+    for (Node* cur = head; cur != nullptr; cur = cur->next)
+    {
+        if (cur->data == oldValue)
+        {
+            cur->data = newValue;
+            changed++;
+        }
+    }
+    return changed;
+}
+
+bool LinkedList::insertAt(int index, int value)             // Q5
+{
+    if (index < 0 || index > length())
+        return false;
+
+    Node* newNode = new Node;
+    newNode->data = value;
+
+    if (index == 0)
+    {
+        newNode->next = head;
+        head = newNode;
+        return true;
+    }
+
+    Node* prev = head;
+    for (int i = 0; i < index - 1; i++)
+        prev = prev->next;
+
+    newNode->next = prev->next;
+    prev->next = newNode;
+    return true;
+}
+
+bool LinkedList::deleteValue(int value)                     // Q6
+{
+    if (head == nullptr)
+        return false;
+
+    if (head->data == value)
+    {
+        Node* victim = head;
+        head = head->next;
+        delete victim;
+        return true;
+    }
+
+    Node* prev = head;
+    while (prev->next != nullptr && prev->next->data != value)
+        prev = prev->next;
+
+    if (prev->next == nullptr)
+        return false;
+
+    Node* victim = prev->next;
+    prev->next = victim->next;
+    delete victim;
+    return true;
+}
+
+void LinkedList::merge(LinkedList& other)                   // Q7
+{
+    if (other.head == nullptr)
+        return;
+
+    if (head == nullptr)
+    {
+        head = other.head;
+    }
+    else
+    {
+        Node* cur = head;
+        while (cur->next != nullptr)
+            cur = cur->next;
+        cur->next = other.head;
+    }
+
+    other.head = nullptr;
+}
+=== END ===
+
+=== FILE: LinkedList/CircularList.h ===
+#pragma once
+#include "Node.h"
+
+// Singly linked list whose last node points back to the first node
+class CircularList
+{
+private:
+    Node* head;
+
+public:
+    CircularList();
+    ~CircularList();
+
+    void append(int value);
+    void display() const;
+    int  length() const;
+};
+=== END ===
+
+=== FILE: LinkedList/CircularList.cpp ===
+#include "CircularList.h"
+#include <iostream>
+using namespace std;
+
+CircularList::CircularList()
+{
+    head = nullptr;
+}
+
+CircularList::~CircularList()
+{
+    if (head == nullptr)
+        return;
+
+    Node* cur = head->next;
+    while (cur != head)
+    {
+        Node* victim = cur;
+        cur = cur->next;
+        delete victim;
+    }
+    delete head;
+    head = nullptr;
+}
+
+void CircularList::append(int value)
+{
+    Node* newNode = new Node;
+    newNode->data = value;
+
+    if (head == nullptr)
+    {
+        newNode->next = newNode;
+        head = newNode;
+        return;
+    }
+
+    Node* last = head;
+    while (last->next != head)
+        last = last->next;
+
+    newNode->next = head;
+    last->next = newNode;
+}
+
+void CircularList::display() const
+{
+    if (head == nullptr)
+    {
+        cout << "(empty)" << endl;
+        return;
+    }
+
+    Node* cur = head;
+    do
+    {
+        cout << cur->data << " -> ";
+        cur = cur->next;
+    } while (cur != head);
+
+    cout << "(back to " << head->data << ")" << endl;
+}
+
+int CircularList::length() const
+{
+    if (head == nullptr)
+        return 0;
+
+    int count = 0;
+    Node* cur = head;
+    do
+    {
+        count++;
+        cur = cur->next;
+    } while (cur != head);
+
+    return count;
+}
+=== END ===
+
+=== FILE: LinkedList/DNode.h ===
+#pragma once
+
+// One element of a doubly linked list
+struct DNode
+{
+    int    data;
+    DNode* prev;                        // previous node (nullptr = first)
+    DNode* next;                        // next node     (nullptr = last)
+};
+=== END ===
+
+=== FILE: LinkedList/DoublyLinkedList.h ===
+#pragma once
+#include "DNode.h"
+
+class DoublyLinkedList
+{
+private:
+    DNode* head;                        // first node
+    DNode* tail;                        // last node: makes insertAtEnd O(1)
+
+public:
+    DoublyLinkedList();
+    ~DoublyLinkedList();
+
+    void insertAtFront(int value);
+    void insertAtEnd(int value);
+    void displayForward() const;
+    void displayBackward() const;
+    bool deleteValue(int value);
+};
+=== END ===
+
+=== FILE: LinkedList/DoublyLinkedList.cpp ===
+#include "DoublyLinkedList.h"
+#include <iostream>
+using namespace std;
+
+DoublyLinkedList::DoublyLinkedList()
+{
+    head = nullptr;
+    tail = nullptr;
+}
+
+DoublyLinkedList::~DoublyLinkedList()
+{
+    while (head != nullptr)
+    {
+        DNode* victim = head;
+        head = head->next;
+        delete victim;
+    }
+    tail = nullptr;
+}
+
+void DoublyLinkedList::insertAtFront(int value)
+{
+    DNode* newNode = new DNode;
+    newNode->data = value;
+    newNode->prev = nullptr;
+    newNode->next = head;
+
+    if (head == nullptr)
+        tail = newNode;
+    else
+        head->prev = newNode;
+
+    head = newNode;
+}
+
+void DoublyLinkedList::insertAtEnd(int value)
+{
+    DNode* newNode = new DNode;
+    newNode->data = value;
+    newNode->next = nullptr;
+    newNode->prev = tail;
+
+    if (tail == nullptr)
+        head = newNode;
+    else
+        tail->next = newNode;
+
+    tail = newNode;
+}
+
+void DoublyLinkedList::displayForward() const
+{
+    cout << "Forward:  ";
+    for (DNode* cur = head; cur != nullptr; cur = cur->next)
+        cout << cur->data << " <-> ";
+    cout << "NULL" << endl;
+}
+
+void DoublyLinkedList::displayBackward() const
+{
+    cout << "Backward: ";
+    for (DNode* cur = tail; cur != nullptr; cur = cur->prev)
+        cout << cur->data << " <-> ";
+    cout << "NULL" << endl;
+}
+
+bool DoublyLinkedList::deleteValue(int value)
+{
+    DNode* cur = head;
+    while (cur != nullptr && cur->data != value)
+        cur = cur->next;
+
+    if (cur == nullptr)
+        return false;
+
+    if (cur->prev == nullptr)
+        head = cur->next;
+    else
+        cur->prev->next = cur->next;
+
+    if (cur->next == nullptr)
+        tail = cur->prev;
+    else
+        cur->next->prev = cur->prev;
+
+    delete cur;
+    return true;
+}
+=== END ===
+
+STEP 3. Line endings and BOM
+After writing, normalise every file above with this PowerShell (adjust the path list), so they are CRLF, UTF-8 without BOM, with a final newline:
+  $enc = New-Object System.Text.UTF8Encoding($false)
+  foreach ($p in $files) { $t = [IO.File]::ReadAllText($p); $t = $t -replace "`r?`n", "`r`n"; if (-not $t.EndsWith("`r`n")) { $t += "`r`n" }; [IO.File]::WriteAllText($p, $t, $enc) }
+
+STEP 4. Project file
+In CENG203_Lab.vcxproj make the ClCompile ItemGroup contain exactly these entries, and the ClInclude ItemGroup exactly these (backslashes, paths relative to the .vcxproj):
+  <ClCompile Include="main.cpp" />
+  <ClCompile Include="Labs\Week03.cpp" />
+  <ClCompile Include="LinkedList\LinkedList.cpp" />
+  <ClCompile Include="LinkedList\CircularList.cpp" />
+  <ClCompile Include="LinkedList\DoublyLinkedList.cpp" />
+
+  <ClInclude Include="Labs\Labs.h" />
+  <ClInclude Include="LinkedList\Node.h" />
+  <ClInclude Include="LinkedList\LinkedList.h" />
+  <ClInclude Include="LinkedList\CircularList.h" />
+  <ClInclude Include="LinkedList\DNode.h" />
+  <ClInclude Include="LinkedList\DoublyLinkedList.h" />
+If the .vcxproj currently lists a .cpp that is not in this list (for example the default CENG203_Lab.cpp with
