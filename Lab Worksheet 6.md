@@ -1,4 +1,4 @@
-
+this is my data structures course worksheet for this week. throughout prev weeks we were given similar worksheets and asked to push code to this repo. this week's worksheet is:
 
 |  2026 – 2027 Academic Year Fall Semester Faculty of Engineering And Natural Sciences Computer Engineering & Software Engineering Department CENG203 – Data Structures Lab Worksheet \#6  |  |  |  |
 | ----- | :---- | :---- | :---- |
@@ -859,3 +859,8 @@ In Tree\\ExpressionTree.cpp implement printInfix – inorder, but an operator no
 
 **e)**	Commit and push (Week 6 \- trees). Write your repository URL here:
 
+
+
+
+
+Your task is to complete this worksheet's tasks and give me the answers to each question AFTER doing the code part. Propose plan then proceed.
